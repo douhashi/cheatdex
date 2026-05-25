@@ -1,0 +1,27 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cheatdex",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-05-21",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	// ISR/SSG の incremental cache 用 R2（open-next.config.ts の r2IncrementalCache と対応）
+	// 事前に `wrangler r2 bucket create cheatdex-inc-cache` で作成する
+	"r2_buckets": [
+		{
+			"binding": "NEXT_INC_CACHE_R2_BUCKET",
+			"bucket_name": "cheatdex-inc-cache"
+		}
+	],
+	// アプリDB + Auth.js 用の D1。`wrangler d1 create cheatdex` で作成し database_id を差し替える
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "cheatdex",
+			"database_id": "REPLACE_WITH_D1_DATABASE_ID"
+		}
+	]
+}
