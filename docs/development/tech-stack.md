@@ -22,7 +22,32 @@
 | ORM | Drizzle ORM | D1 / Workers に最適化。Edge で軽量、SQLite ドライバ公式対応 |
 | zip 生成 | fflate | Workers ランタイムで動作（Node 専用の archiver は不可）。プラットフォーム別フォーマットへ変換して固める |
 | デプロイ | wrangler | Cloudflare 公式 CLI。Workers / バインディングを管理 |
-| パッケージマネージャ | pnpm | 省ディスク・高速（任意） |
+| Lint / Format | Biome | lint + format 一体、Rust 製で高速、設定が少ない |
+| パッケージマネージャ | pnpm | 省ディスク・高速 |
+| ツール管理 | mise | node / pnpm / lefthook のバージョンを一元管理 |
+| Git hooks | lefthook | pre-commit で lint / typecheck を実行 |
+| CI | GitHub Actions | install → lint → typecheck → build |
+
+## 開発環境 / ツールチェーン
+
+ツールは [mise](https://mise.jdx.dev/) で一元管理する（`mise.toml`）。`mise install` で node（LTS）/ pnpm / lefthook が揃う。
+
+| ツール | 用途 | コマンド / 設定 |
+|--------|------|-----------------|
+| mise | ランタイム・CLI のバージョン管理 | `mise.toml`（`node = "lts"`, `pnpm`, `lefthook`） |
+| Biome | lint + format | `pnpm lint` / `pnpm format`（`biome.json`） |
+| TypeScript | 型チェック | `pnpm typecheck`（`tsc --noEmit`） |
+| lefthook | Git pre-commit hook | staged に Biome、全体に typecheck（`lefthook.yml`） |
+| GitHub Actions | CI | `.github/workflows/ci.yml`: install → lint → typecheck → build |
+
+`cloudflare-env.d.ts`（`wrangler types` の生成物）はコミットせず、`postinstall` で各環境で生成する。
+
+### セットアップ手順
+
+1. `mise install` — node / pnpm / lefthook を導入
+2. `pnpm install` — 依存を導入（postinstall で `cloudflare-env.d.ts` を生成）
+3. `lefthook install` — Git pre-commit フックを設置
+4. `pnpm dev` — 開発サーバ / `pnpm preview` — Workers ランタイムでプレビュー / `pnpm deploy` — デプロイ
 
 ## 補足
 

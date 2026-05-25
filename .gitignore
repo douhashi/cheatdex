@@ -13,3 +13,37 @@
 
 # Temp design notes
 .tmp/
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# OpenNext / Cloudflare
+/.open-next/
+/.wrangler/
+.dev.vars
+.dev.vars.*
+# wrangler types の生成物（postinstall で各環境で生成）
+cloudflare-env.d.ts
+
+# testing
+/coverage
+
+# misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+
+# debug
+npm-debug.log*
+.pnpm-debug.log*
+
+# vercel
+.vercel

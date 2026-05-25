@@ -1,0 +1,13 @@
+# lefthook 設定
+# mise で導入した lefthook を使い、コミット前に lint / typecheck を実施する。
+# セットアップ: mise install 後に `lefthook install`（フックを .git/hooks に設置）
+
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
+      run: mise exec -- pnpm biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+    typecheck:
+      run: mise exec -- pnpm typecheck
