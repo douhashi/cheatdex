@@ -71,6 +71,21 @@ App Router を前提に、以下の責務で分離する。
 - プラットフォーム → ゲーム → チートコードの階層を Server Components で表示
 - 編集・ON/OFF 切替・削除は Server Actions で実行し、対象パスを `revalidatePath` で再検証
 
+#### Web UI 構成（Phase 3）
+
+| ルート | 役割 | 認証ガード |
+|--------|------|-----------|
+| `/`（`app/page.tsx`） | ログイン / ログアウト動線（`signIn("google")` / `signOut()` を Server Action 化） | 不要（ログイン状態で表示分岐） |
+| `/dashboard`（`app/dashboard/`） | Platform > Game > CheatCode 階層一覧、CheatCode 編集/削除/ON-OFF、Game 編集/削除、CheatCode 手動登録フォーム | 要（`requireUser`） |
+| `/tokens`（`app/tokens/`） | PAT 一覧・発行（平文 1 度表示）・削除 | 要（`requireUser`） |
+
+- **認証ガード**: `middleware.ts` は導入せず、保護 page と各 Server Action 冒頭で `auth()`（`app/lib/auth/session.ts` の `requireUser`）を呼び、未ログインはサインインへ `redirect`（保護対象が `/dashboard` と `/tokens` の 2 ルートのみのため YAGNI）。クライアントから来る id は信用せず、常にセッションの `user.id` でスコープする。
+- **session.user.id**: database セッション戦略の `callbacks.session` で `session.user.id = user.id` を付与（`app/lib/auth/auth.ts`）。型は module augmentation（`app/types/next-auth.d.ts`）で補い `as any` を使わない。
+- **一覧データ取得**: Server Component から `getDb()` で D1 を直接取得する（内部 fetch は使わない）。所有者スコープのクエリは `app/lib/db/queries.ts` に集約し GET API と共有する（DRY）。
+- **編集系のロジック集約**: 所有者チェック・ミューテーションは `app/lib/cheatcode/mutations.ts`、入力検証は既存の `app/lib/cheatcode/validate.ts`（`validateCheatCodeItem`）を Server Action から再利用する（DRY）。
+- **編集系 API（Route Handler）は追加しない**: CheatCode/Game/PAT の編集・削除・ON-OFF は Web UI 専用の Server Actions のみで提供する。拡張が使う外部 API は既存の `POST /api/cheatcodes/bulk` と PAT 系のみで足りる（外部に編集系 API を増やさない＝YAGNI）。
+- **PAT 削除**: 物理 DELETE（`revoked_at` は持たない）。削除後は `token_hash` 一致行が無く `authenticate()` が自然に 401 を返す（受け入れ基準「削除後は拡張からの API が弾かれる」）。
+
 ### Chrome 拡張からのチート登録
 
 1. ユーザーが Web で発行した PAT を拡張に設定（初回のみ）。PAT は拡張の `chrome.storage.local` に保存し、同期ストレージには載せない

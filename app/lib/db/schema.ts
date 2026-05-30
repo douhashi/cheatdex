@@ -84,6 +84,7 @@ export const cheatCode = sqliteTable("cheat_code", {
 	name: text("name").notNull(),
 	code: text("code").notNull(),
 	description: text("description"),
+	enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
 	createdAt: integer("created_at").notNull().default(sql`(unixepoch() * 1000)`),
 	updatedAt: integer("updated_at").notNull().default(sql`(unixepoch() * 1000)`),
 });

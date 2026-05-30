@@ -1,66 +1,38 @@
-import Image from "next/image";
+import Link from "next/link";
+import { signInAction, signOutAction } from "@/app/lib/auth/actions";
+import { auth } from "@/app/lib/auth/auth";
 import styles from "./page.module.css";
 
-export default function Home() {
+/**
+ * トップページ。
+ * 未ログインなら Google ログイン、ログイン済みならダッシュボード導線を表示する。
+ */
+export default async function Home() {
+	const session = await auth();
+	const user = session?.user;
+
 	return (
-		<div className={styles.page}>
-			<main className={styles.main}>
-				<Image
-					className={styles.logo}
-					src="/next.svg"
-					alt="Next.js logo"
-					width={100}
-					height={20}
-					priority
-				/>
-				<div className={styles.intro}>
-					<h1>To get started, edit the page.tsx file.</h1>
+		<main className={styles.main}>
+			<h1>Cheatdex</h1>
+			<p>API-first cheat code manager.</p>
+			{user ? (
+				<div className={styles.actions}>
 					<p>
-						Looking for a starting point or more instructions? Head over to{" "}
-						<a
-							href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							Templates
-						</a>{" "}
-						or the{" "}
-						<a
-							href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							Learning
-						</a>{" "}
-						center.
+						ログイン中: <strong>{user.email}</strong>
 					</p>
+					<nav className={styles.nav}>
+						<Link href="/dashboard">ダッシュボード</Link>
+						<Link href="/tokens">アクセストークン管理</Link>
+					</nav>
+					<form action={signOutAction}>
+						<button type="submit">ログアウト</button>
+					</form>
 				</div>
-				<div className={styles.ctas}>
-					<a
-						className={styles.primary}
-						href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Image
-							className={styles.logo}
-							src="/vercel.svg"
-							alt="Vercel logomark"
-							width={16}
-							height={16}
-						/>
-						Deploy Now
-					</a>
-					<a
-						className={styles.secondary}
-						href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Documentation
-					</a>
-				</div>
-			</main>
-		</div>
+			) : (
+				<form action={signInAction}>
+					<button type="submit">Google でログイン</button>
+				</form>
+			)}
+		</main>
 	);
 }

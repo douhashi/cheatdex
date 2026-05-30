@@ -1,0 +1,83 @@
+.main {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 2rem 1rem;
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+
+.nav {
+	display: flex;
+	gap: 1rem;
+}
+
+.section {
+	margin-top: 2rem;
+}
+
+.note {
+	color: #666;
+	font-size: 0.9rem;
+}
+
+.issueForm {
+	display: flex;
+	gap: 0.5rem;
+	align-items: flex-end;
+	flex-wrap: wrap;
+}
+
+.issueForm label {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+}
+
+.issued {
+	margin-top: 1rem;
+	padding: 0.75rem 1rem;
+	border: 1px solid #2a7;
+	border-radius: 6px;
+	background: #f3fff8;
+}
+
+.tokenValue {
+	display: block;
+	margin-top: 0.5rem;
+	padding: 0.5rem;
+	background: #f3f3f3;
+	border-radius: 4px;
+	word-break: break-all;
+}
+
+.list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem;
+	border-top: 1px solid #eee;
+}
+
+.tokenName {
+	font-weight: 600;
+}
+
+.error {
+	color: #c00;
+}
