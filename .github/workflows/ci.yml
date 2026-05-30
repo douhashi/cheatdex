@@ -21,15 +21,30 @@ jobs:
       # mise.toml の node / pnpm を導入（ローカルと同じツールチェーン）
       - uses: jdx/mise-action@v2
 
-      # 依存インストール（postinstall で cloudflare-env.d.ts を生成）
+      # 依存インストール（ルート Next.js の postinstall で cloudflare-env.d.ts、
+      # 拡張の postinstall で .wxt を生成。workspace 全体を入れる）
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # --- ルート（Next.js / API） -----------------------------------------
       - name: Lint
         run: pnpm lint
 
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Test
+        run: pnpm test
+
       - name: Build
         run: pnpm build
+
+      # --- 拡張（apps/extension, WXT） --------------------------------------
+      - name: Extension typecheck
+        run: pnpm --filter cheatdex-extension typecheck
+
+      - name: Extension test
+        run: pnpm --filter cheatdex-extension test
+
+      - name: Extension build
+        run: pnpm --filter cheatdex-extension build

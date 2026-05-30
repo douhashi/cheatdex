@@ -1,5 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { authenticate } from "@/app/lib/auth/authenticate";
+import { validateCheatCodeItem } from "@/app/lib/cheatcode/validate";
 import { getDb } from "@/app/lib/db/client";
 import { cheatCode, game } from "@/app/lib/db/schema";
 import { badRequest, json, unauthorized } from "@/app/lib/http";
@@ -24,6 +25,8 @@ export async function GET(req: Request): Promise<Response> {
 /**
  * POST /api/cheatcodes — チートコード登録（既存 game_id 必須）
  * body: { game_id: number, name: string, code: string, description?: string }
+ *
+ * 入力検証は bulk と共通の `validateCheatCodeItem` を用いる（DRY）。
  */
 export async function POST(req: Request): Promise<Response> {
 	const user = await authenticate(req);
@@ -32,25 +35,15 @@ export async function POST(req: Request): Promise<Response> {
 	}
 	const body = (await req.json().catch(() => null)) as {
 		game_id?: unknown;
-		name?: unknown;
-		code?: unknown;
-		description?: unknown;
 	} | null;
 	const gameId = body?.game_id;
-	const name = body?.name;
-	const code = body?.code;
-	const description = body?.description;
 	if (typeof gameId !== "number" || !Number.isInteger(gameId)) {
 		return badRequest("game_id is required");
 	}
-	if (typeof name !== "string" || name.trim() === "") {
-		return badRequest("name is required");
-	}
-	if (typeof code !== "string" || code.trim() === "") {
-		return badRequest("code is required");
-	}
-	if (description !== undefined && typeof description !== "string") {
-		return badRequest("description must be a string");
+
+	const validated = validateCheatCodeItem(body);
+	if (!validated.ok) {
+		return badRequest(validated.reason);
 	}
 
 	const db = getDb();
@@ -65,13 +58,7 @@ export async function POST(req: Request): Promise<Response> {
 
 	const [created] = await db
 		.insert(cheatCode)
-		.values({
-			userId: user.id,
-			gameId,
-			name: name.trim(),
-			code,
-			description: description ?? null,
-		})
+		.values({ userId: user.id, gameId, ...validated.value })
 		.returning();
 	return json(created, 201);
 }
