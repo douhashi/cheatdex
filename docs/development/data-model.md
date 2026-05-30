@@ -65,6 +65,12 @@ Auth.js が管理。Google ログインのアカウント。
 | enabled | boolean | ON/OFF 状態（案A: レコード属性） |
 | description | text? | 補足説明 |
 
+> 実装との乖離（Phase 1/2 で確定。真実源は `app/lib/db/schema.ts`）:
+> - `cheat_code` の本体カラムの物理名は **`code`**（本表の論理名 `body` ではない）。
+> - **`enabled` カラムは未実装**（ON/OFF は MVP に未導入）。導入時に別途マイグレーションする。
+> - `cheat_code` は `user_id`（所有者）を持つ（案A）。`game.platform_id`、`platform.slug` を使用する。
+> - 一括登録 API `POST /api/cheatcodes/bulk` は `{ game_id, items: [{ name, code, description? }] }` を 1 回のバッチ挿入で永続化する（[architecture.md](./architecture.md)）。
+
 ### ApiToken
 
 Chrome 拡張など、Web セッションを介さないクライアントから API を叩くための個人アクセストークン（PAT）。

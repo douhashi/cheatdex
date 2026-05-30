@@ -7,7 +7,16 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!cloudflare-env.d.ts", "!next-env.d.ts"]
+		"includes": [
+			"**",
+			"!cloudflare-env.d.ts",
+			"!next-env.d.ts",
+			"!**/node_modules",
+			"!**/.next",
+			"!**/.open-next",
+			"!apps/*/.output",
+			"!apps/*/.wxt"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -35,5 +44,19 @@
 				"organizeImports": "on"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["apps/extension/**"],
+			"linter": {
+				"domains": {
+					"next": "none",
+					"react": "none"
+				}
+			},
+			"javascript": {
+				"globals": ["__CHEATDEX_DEFAULT_BASE_URL__"]
+			}
+		}
+	]
 }

@@ -28,6 +28,10 @@ next-env.d.ts
 # OpenNext / Cloudflare
 /.open-next/
 /.wrangler/
+
+# WXT extension build artifacts (apps/extension)
+.output/
+.wxt/
 .dev.vars
 .dev.vars.*
 # wrangler types の生成物（postinstall で各環境で生成）
@@ -47,3 +51,6 @@ npm-debug.log*
 
 # vercel
 .vercel
+
+# editor/patch backups
+*.orig

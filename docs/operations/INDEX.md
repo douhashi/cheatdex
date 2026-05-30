@@ -1,6 +1,8 @@
 # Operations Documents
 
-運用文書はまだ整備されていない。デプロイ・ロールバック・監視の手順は構成確定後にここへ追加する。
+- `extension.md`: Chrome 拡張（Cheatdex Collector）のビルド・`chrome://extensions` での読み込み・PAT 設定・使い方
+
+デプロイ・ロールバック・監視の手順は構成確定後にここへ追加する。
 
 インフラ構成の設計は [../development/infrastructure.md](../development/infrastructure.md) を参照。
 

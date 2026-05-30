@@ -73,11 +73,21 @@ App Router を前提に、以下の責務で分離する。
 
 ### Chrome 拡張からのチート登録
 
-1. ユーザーが Web で発行した PAT を拡張に設定（初回のみ）
-2. チートコード掲載ページで拡張を起動。拡張がページ内テキストを正規表現でスキャンし、**GameShark 系 hex** と **PCSX2 `.pnach`** にマッチする行を抽出
-3. 検出された各コードに対し、近接テキストを候補名として埋め、一覧表示
-4. ユーザーが取り込み対象を選択。Game と Platform を 1 度だけ指定して bulk 送信
-5. Route Handler が PAT を検証し、CheatCode を一括で D1 に登録
+1. ユーザーが Web で発行した PAT を拡張に設定（初回のみ）。PAT は拡張の `chrome.storage.local` に保存し、同期ストレージには載せない
+2. チートコード掲載ページで拡張アイコンを押すと、`activeTab` + `chrome.scripting.executeScript` で現在のタブに都度注入してページテキストを取得し、正規表現で **GameShark 系 hex** と **PCSX2 `.pnach`** にマッチする行を抽出（常時 `<all_urls>` 注入はしない）
+3. 検出された各コードに対し、近接テキスト（GameShark は直前見出し、`.pnach` は `//` / `comment=`）を候補名として埋め、一覧表示
+4. ユーザーが取り込み対象を選択。Game（既存の Game ID）を 1 度だけ指定して **`POST /api/cheatcodes/bulk`** に 1 リクエストで bulk 送信
+5. Route Handler が PAT を検証し、全 item を先にバリデーション（all-or-nothing）して CheatCode を **1 回のバッチ挿入**で D1 に登録。件数を返す
+
+#### bulk 登録 API（`POST /api/cheatcodes/bulk`）
+
+拡張の「1 操作で 30+ 件」を素直に満たすため、登録 API に bulk エンドポイントを設ける（Web の一括登録でも再利用可能）。
+
+- **リクエスト**: `{ game_id: number, items: [{ name, code, description? }] }`（Game/Platform はトップレベルで 1 度だけ指定。`items` は最大 200 件）
+- **認証**: 既存単件 API と同一の `authenticate(req)`（Bearer PAT / セッション）
+- **部分失敗ポリシー**: all-or-nothing。1 件でも不正なら何も挿入せず `400`（不正な index と理由）。`game_id` 不在は `400`
+- **レスポンス**: `201 { created: [...], count: N }`
+- **DRY**: 単件 item の検証は単件 `POST /api/cheatcodes` と共通の純粋関数 `app/lib/cheatcode/validate.ts` に集約。実スキーマ（`app/lib/db/schema.ts`）に合わせ本体カラムは `code`、`game.platform_id`、`platform.slug`（data-model.md の論理名 `body`/`enabled` ではない）
 
 ### zip ダウンロード
 
@@ -100,3 +110,5 @@ App Router を前提に、以下の責務で分離する。
 - **対応プラットフォーム**: MVP は PS2 のみ（PCSX2 / NetherSX2 の `.pnach`） → [data-model.md](./data-model.md)
 - **認証の二系統**: Web は Auth.js（Google OAuth）、Chrome 拡張は PAT → [tech-stack.md](./tech-stack.md)
 - **Chrome 拡張の検出形式**: 初期は GameShark 系 hex と PCSX2 `.pnach` の 2 系統に限定
+- **Chrome 拡張の配置**: pnpm workspace の `apps/extension`（WXT / vanilla TS）。ルートの Next.js は据え置き（`apps/web` への移設はしない）。拡張は API を HTTP で叩くのみで Next.js コードへは依存しない → [tech-stack.md](./tech-stack.md)
+- **bulk 登録**: `POST /api/cheatcodes/bulk` を追加し、拡張からの 1 リクエスト bulk 送信を実現（all-or-nothing）
