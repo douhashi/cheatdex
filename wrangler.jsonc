@@ -16,12 +16,13 @@
 			"bucket_name": "cheatdex-inc-cache"
 		}
 	],
-	// アプリDB + Auth.js 用の D1。`wrangler d1 create cheatdex` で作成し database_id を差し替える
+	// アプリDB + Auth.js 用の D1。`wrangler d1 create cheatdex` で作成し database_id を差し替える（V7 / 人手準備）
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "cheatdex",
-			"database_id": "REPLACE_WITH_D1_DATABASE_ID"
+			"database_id": "REPLACE_WITH_D1_DATABASE_ID",
+			"migrations_dir": "drizzle"
 		}
 	]
 }

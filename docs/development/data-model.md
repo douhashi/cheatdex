@@ -4,6 +4,12 @@
 
 永続化は Cloudflare D1（SQLite）。アプリのチートデータは Drizzle ORM、認証関連テーブルは Auth.js の `@auth/d1-adapter` が管理する（[tech-stack.md](./tech-stack.md)）。
 
+> 実装メモ（Phase 1）:
+> - Drizzle スキーマの真実源 (SSoT) は `app/lib/db/schema.ts` の 1 ファイル。`drizzle-kit generate` でマイグレーション SQL を生成し、`wrangler d1 migrations apply cheatdex` で適用する（適用経路を 1 本に統一）。
+> - アプリ独自テーブル（platform / game / cheat_code / api_token）に加え、Auth.js (@auth/d1-adapter) の標準 4 表（users / accounts / sessions / verification_tokens）も同一ファイル・同一マイグレーション系列で定義する。Auth.js 標準テーブルの列名は adapter の DDL に合わせ camelCase（`userId` / `providerAccountId` / `sessionToken` / `emailVerified`）、日時列（`expires` / `emailVerified`）は adapter が ISO8601 文字列を保存するため TEXT とする。
+> - 本ドキュメントの ApiToken の物理テーブル名は **`api_token`**（列定義は ApiToken に一致）。
+> - アプリ独自テーブルの主キーは物理上 `INTEGER PRIMARY KEY AUTOINCREMENT`（cuid/UUID への追加依存を避ける）。日時カラム（`created_at` / `updated_at` / `last_used_at`）は epoch ミリ秒（INTEGER, デフォルト `(unixepoch() * 1000)`）。
+
 ## エンティティ関連（概要）
 
 ```
@@ -71,6 +77,19 @@ Chrome 拡張など、Web セッションを介さないクライアントから
 | name | string | 用途名（例: `Chrome 拡張`） |
 | createdAt | datetime | 発行日時 |
 | lastUsedAt | datetime? | 最終利用日時 |
+
+> ハッシュ方式: 平文トークンは 32byte 乱数（`crypto.getRandomValues`）を base64url 化し `cdx_` プレフィックスを付与する。DB には SHA-256（`crypto.subtle.digest`、ソルト無し）ハッシュ（hex）のみを保存し、平文は発行 API のレスポンスで 1 度だけ返す（再取得不可）。検証は受領トークンを同方式でハッシュ化して `token_hash` と突合する。
+
+### Auth.js 標準テーブル
+
+Auth.js（@auth/d1-adapter, database セッション戦略）が利用する標準テーブル。スキーマは adapter の DDL に準拠する。
+
+| テーブル | 役割 |
+|----------|------|
+| `users` | ログインユーザー。`cheat_code.user_id` / `api_token.user_id` の参照先 |
+| `accounts` | OAuth プロバイダ（Google）との紐付け |
+| `sessions` | database セッション（サーバ側で永続化・無効化できる） |
+| `verification_tokens` | メール検証等のトークン（MVP では未使用だが adapter が要求） |
 
 ## zip 出力フォーマット
 

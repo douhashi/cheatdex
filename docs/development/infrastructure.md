@@ -75,15 +75,51 @@ export default defineCloudflareConfig({
 | デプロイ | `wrangler deploy`（または `opennextjs-cloudflare deploy`） |
 | D1 マイグレーション | `wrangler d1 migrations apply`（Drizzle で生成） |
 
+## D1 マイグレーション / seed 運用
+
+Drizzle スキーマ（`app/lib/db/schema.ts`、SSoT）からマイグレーション SQL を生成し、`wrangler d1 migrations apply` で適用する（適用経路を 1 本に統一）。`wrangler.jsonc` の `d1_databases[].migrations_dir` を `drizzle` に設定しているため、`drizzle/` 配下の SQL がマイグレーションとして適用される。
+
+```bash
+pnpm db:generate        # drizzle-kit generate（スキーマ → SQL）
+pnpm db:migrate:local   # wrangler d1 migrations apply cheatdex --local
+pnpm db:migrate:remote  # wrangler d1 migrations apply cheatdex --remote
+```
+
+Platform 初期データ（ps2）は冪等 seed SQL（`drizzle/seed.sql`、`INSERT ... ON CONFLICT(slug) DO NOTHING`）で投入する。何度流しても安全。
+
+```bash
+pnpm db:seed:local      # wrangler d1 execute cheatdex --local  --file ./drizzle/seed.sql
+pnpm db:seed:remote     # wrangler d1 execute cheatdex --remote --file ./drizzle/seed.sql
+```
+
+remote 初期セットアップ:
+
+1. `wrangler d1 create cheatdex` で remote D1 を作成し、出力 `database_id` を `wrangler.jsonc` に設定（現状はプレースホルダ `REPLACE_WITH_D1_DATABASE_ID`）。
+2. `pnpm db:migrate:remote` でスキーマ適用。
+3. `pnpm db:seed:remote` で Platform 初期データ投入。
+
 ## シークレット / 環境変数
 
 | 変数 | 用途 | 管理 |
 |------|------|------|
-| `AUTH_SECRET` | Auth.js のセッション暗号化 | `wrangler secret` |
+| `AUTH_SECRET` | Auth.js のセッション/トークン署名鍵（`openssl rand -base64 32` 等で生成） | `wrangler secret` |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth クライアント | `wrangler secret` |
 | D1 / R2 | DB・キャッシュ | wrangler バインディング |
 
+```bash
+wrangler secret put AUTH_SECRET
+wrangler secret put AUTH_GOOGLE_ID
+wrangler secret put AUTH_GOOGLE_SECRET
+```
+
 > シークレットは `wrangler secret put` で登録し、リポジトリにコミットしない。ローカル開発は `.dev.vars` を使用（gitignore 対象）。
+
+### Google OAuth リダイレクト URI
+
+Google Cloud Console の OAuth クライアント設定で、以下の「承認済みリダイレクト URI」を登録する。
+
+- 本番: `https://<本番ドメイン>/api/auth/callback/google`
+- ローカル: `http://localhost:3000/api/auth/callback/google`
 
 ## 要確認 / 今後
 
