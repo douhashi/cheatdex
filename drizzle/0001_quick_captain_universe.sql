@@ -1,0 +1,1 @@
+ALTER TABLE `cheat_code` ADD `enabled` integer DEFAULT true NOT NULL;

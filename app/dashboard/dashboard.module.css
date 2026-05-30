@@ -1,0 +1,139 @@
+.main {
+	max-width: 880px;
+	margin: 0 auto;
+	padding: 2rem 1rem;
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+
+.nav {
+	display: flex;
+	gap: 1rem;
+}
+
+.section {
+	margin-top: 2rem;
+}
+
+.platform {
+	margin-top: 1.5rem;
+}
+
+.game {
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	padding: 0.75rem 1rem;
+	margin-top: 0.75rem;
+}
+
+.gameHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.gameTitle {
+	margin: 0;
+}
+
+.cheatList {
+	list-style: none;
+	padding: 0;
+	margin: 0.75rem 0 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.cheatRow {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	padding: 0.5rem;
+	border-top: 1px solid #eee;
+}
+
+.cheatRow[data-enabled="false"] {
+	opacity: 0.55;
+}
+
+.cheatInfo {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.cheatName {
+	font-weight: 600;
+}
+
+.cheatCode {
+	background: #f3f3f3;
+	padding: 0.1rem 0.4rem;
+	border-radius: 4px;
+	white-space: pre-wrap;
+}
+
+.cheatDesc {
+	color: #666;
+}
+
+.badge {
+	font-size: 0.75rem;
+	border: 1px solid #ccc;
+	border-radius: 999px;
+	padding: 0 0.5rem;
+}
+
+.rowActions {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+}
+
+.rowActions form {
+	display: inline;
+}
+
+.editForm,
+.createForm {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	max-width: 480px;
+}
+
+.editForm label,
+.createForm label {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+}
+
+.inlineForm {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.error {
+	color: #c00;
+	margin: 0;
+}
+
+.note {
+	color: #888;
+	font-size: 0.85rem;
+}

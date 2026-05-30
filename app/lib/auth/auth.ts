@@ -20,5 +20,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
 		adapter: D1Adapter(env.DB),
 		session: { strategy: "database" },
 		providers: [Google],
+		callbacks: {
+			// database セッション戦略では callback の user に DB レコードが渡る。
+			// session.user.id を露出し、所有者スコープ判定で利用する
+			// （authenticateSession() / Server Component / Server Action が前提とする）。
+			session({ session, user }) {
+				session.user.id = user.id;
+				return session;
+			},
+		},
 	};
 });

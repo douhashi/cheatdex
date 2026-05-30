@@ -61,15 +61,24 @@ Auth.js が管理。Google ログインのアカウント。
 | id | string | PK |
 | gameId | string | FK → Game |
 | name | string | チート名（表示用） |
-| body | text | チートコード本体 |
-| enabled | boolean | ON/OFF 状態（案A: レコード属性） |
+| body | text | チートコード本体（物理名は `code`） |
+| enabled | boolean | ON/OFF 状態（案A: レコード属性。Phase 3 で実装済み・既定 true） |
 | description | text? | 補足説明 |
 
-> 実装との乖離（Phase 1/2 で確定。真実源は `app/lib/db/schema.ts`）:
+> 実装との乖離（Phase 1/2/3 で確定。真実源は `app/lib/db/schema.ts`）:
 > - `cheat_code` の本体カラムの物理名は **`code`**（本表の論理名 `body` ではない）。
-> - **`enabled` カラムは未実装**（ON/OFF は MVP に未導入）。導入時に別途マイグレーションする。
+> - **`enabled` カラムは Phase 3 で実装済み**。`integer("enabled", { mode: "boolean" }).notNull().default(true)`（物理は `INTEGER NOT NULL DEFAULT true`＝1）。既存行は migration の DEFAULT で「有効」に倒れる。マイグレーションは `drizzle/0001_quick_captain_universe.sql`（`pnpm db:generate` で生成 → `wrangler d1 migrations apply cheatdex` で適用、経路は 1 本）。
 > - `cheat_code` は `user_id`（所有者）を持つ（案A）。`game.platform_id`、`platform.slug` を使用する。
 > - 一括登録 API `POST /api/cheatcodes/bulk` は `{ game_id, items: [{ name, code, description? }] }` を 1 回のバッチ挿入で永続化する（[architecture.md](./architecture.md)）。
+
+#### ダッシュボード上の Game 操作セマンティクス（Phase 3）
+
+`game` / `platform` は `userId` を持たない**全ユーザー共有マスタ**であり、これは維持する（`game.userId` は追加しない）。Issue #5 の「Game 編集・削除」と「他ユーザーのデータは一切操作できない」を両立させるため、ダッシュボード上の Game 操作は **CheatCode の所有（`cheat_code.user_id`）を介したスコープ**として実装する。
+
+- **一覧表示**: ログインユーザーが CheatCode を持つ Game のみを `cheat_code.user_id` 経由で表示する（他人専用の Game は不可視）。
+- **Game 削除（自分視点）**: 当該 Game 配下の**自分の CheatCode をすべて削除**する。共有 `game` 行は他ユーザーが参照していれば残し、誰も参照しなくなった場合のみ `game` 行を掃除する（最小実装）。他者の CheatCode には一切触れない。
+- **Game 編集（title）**: その Game に**他ユーザーの CheatCode が 1 件も無い場合に限り**許可する（単独所有時のみ）。他ユーザーが参照する共有 Game は編集不可（UI に理由を表示）。
+- 編集系は Web UI からの Server Actions のみで行い、所有者チェックは `and(eq(id), eq(user_id))` を `app/lib/cheatcode/mutations.ts` に集約する（DRY）。
 
 ### ApiToken
 
