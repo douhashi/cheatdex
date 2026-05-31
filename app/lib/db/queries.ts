@@ -1,4 +1,5 @@
 import { asc, eq } from "drizzle-orm";
+import type { GameExport } from "@/app/lib/export/zip";
 import type { Db } from "./client";
 import type { CheatCode, Game, Platform } from "./schema";
 import { apiToken, cheatCode, game, platform } from "./schema";
@@ -14,6 +15,8 @@ import { apiToken, cheatCode, game, platform } from "./schema";
 export type DashboardGame = {
 	id: number;
 	title: string;
+	/** PCSX2 識別子（zip 出力のファイル名に使う）。未設定は null。 */
+	crc: string | null;
 	/** この Game に他ユーザーの CheatCode が存在するか（編集可否判定に使う）。 */
 	sharedWithOthers: boolean;
 	cheatCodes: CheatCode[];
@@ -84,6 +87,7 @@ export async function getDashboardTree(
 			dashGames.push({
 				id: g.id,
 				title: g.title,
+				crc: g.crc,
 				sharedWithOthers: otherOwnerGameIds.has(g.id),
 				cheatCodes: codes,
 			});
@@ -123,4 +127,47 @@ export async function getPlatformGameOptions(
 		.orderBy(asc(platform.name));
 	const games = await db.select().from(game).orderBy(asc(game.title));
 	return { platforms, games };
+}
+
+/**
+ * zip export 用: ログインユーザーが CheatCode を持つ Game を、
+ * その「自分の CheatCode」とともに返す（所有者スコープ）。
+ *
+ * - 他ユーザーの CheatCode は一切含めない（user_id で絞る）。
+ * - 自分の CheatCode が 1 件も無い Game は含めない。
+ * - CRC のスキップ判定・enabled 絞り込みは呼び出し側（buildExport）が行う。
+ */
+export async function getGamesForExport(
+	db: Db,
+	userId: string,
+): Promise<GameExport[]> {
+	const myCodes = await db
+		.select()
+		.from(cheatCode)
+		.where(eq(cheatCode.userId, userId))
+		.orderBy(asc(cheatCode.createdAt));
+	if (myCodes.length === 0) return [];
+
+	const games = await db.select().from(game).orderBy(asc(game.title));
+	const gameById = new Map(games.map((g) => [g.id, g]));
+
+	const codesByGameId = new Map<number, CheatCode[]>();
+	for (const code of myCodes) {
+		const list = codesByGameId.get(code.gameId);
+		if (list) {
+			list.push(code);
+		} else {
+			codesByGameId.set(code.gameId, [code]);
+		}
+	}
+
+	const rows: GameExport[] = [];
+	for (const g of games) {
+		const cheatCodes = codesByGameId.get(g.id);
+		if (cheatCodes === undefined) continue;
+		const owned = gameById.get(g.id);
+		if (owned === undefined) continue;
+		rows.push({ game: owned, cheatCodes });
+	}
+	return rows;
 }

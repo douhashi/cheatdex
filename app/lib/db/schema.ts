@@ -70,6 +70,12 @@ export const game = sqliteTable("game", {
 		.notNull()
 		.references(() => platform.id),
 	title: text("title").notNull(),
+	/**
+	 * PCSX2 が要求するゲーム識別子（CRC）。zip 出力（cheats/<CRC>.pnach）の
+	 * ファイル名に使う。大文字 8 桁 hex（/^[0-9A-Fa-f]{8}$/）を保存時に
+	 * 大文字化して正規化する。未設定（null）の Game は zip 出力からスキップする。
+	 */
+	crc: text("crc"),
 	createdAt: integer("created_at").notNull().default(sql`(unixepoch() * 1000)`),
 });
 

@@ -137,3 +137,40 @@
 	color: #888;
 	font-size: 0.85rem;
 }
+
+.sectionHead {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	flex-wrap: wrap;
+}
+
+.downloadLink {
+	display: inline-block;
+	padding: 0.45rem 0.9rem;
+	border: 1px solid #333;
+	border-radius: 6px;
+	text-decoration: none;
+	color: #111;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.crcRow {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	margin: 0.5rem 0 0.25rem;
+}
+
+.crcLabel {
+	font-family: monospace;
+	font-size: 0.85rem;
+	color: #444;
+}
+
+.muted {
+	color: #a06000;
+}
