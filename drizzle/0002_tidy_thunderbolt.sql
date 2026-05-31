@@ -1,0 +1,1 @@
+ALTER TABLE `game` ADD `crc` text;

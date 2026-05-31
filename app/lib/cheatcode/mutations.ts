@@ -1,6 +1,7 @@
 import { and, eq, ne } from "drizzle-orm";
 import type { Db } from "../db/client";
 import { cheatCode, game } from "../db/schema";
+import { normalizeCrc } from "../export/crc";
 import type { ValidCheatCodeItem } from "./validate";
 
 /**
@@ -147,6 +148,48 @@ export async function updateGameTitle(
 	}
 
 	await db.update(game).set({ title: trimmed }).where(eq(game.id, gameId));
+	return { ok: true };
+}
+
+/**
+ * Game の CRC（PCSX2 識別子）を編集する。
+ * - 空文字 → CRC を未設定（null）にする。
+ * - 8 桁 hex → 大文字化して保存。それ以外は検証エラー。
+ * - title 編集と同じ所有者スコープ／共有マスタ保護を適用する
+ *   （自分の CheatCode を持つ Game のみ・他者と共有する Game は不可）。
+ */
+export async function updateGameCrc(
+	db: Db,
+	userId: string,
+	gameId: number,
+	rawCrc: string,
+): Promise<MutationResult> {
+	const trimmed = rawCrc.trim();
+	let crc: string | null;
+	if (trimmed === "") {
+		crc = null;
+	} else {
+		crc = normalizeCrc(trimmed);
+		if (crc === null) {
+			return { ok: false, error: "CRC は 8 桁の16進数で入力してください" };
+		}
+	}
+
+	const mine = await db
+		.select({ id: cheatCode.id })
+		.from(cheatCode)
+		.where(and(eq(cheatCode.gameId, gameId), eq(cheatCode.userId, userId)))
+		.limit(1);
+	if (mine.at(0) === undefined) return { ok: false, error: "game not found" };
+
+	if (await hasOtherOwnerCheatCodes(db, userId, gameId)) {
+		return {
+			ok: false,
+			error: "他のユーザーも利用している Game のため編集できません",
+		};
+	}
+
+	await db.update(game).set({ crc }).where(eq(game.id, gameId));
 	return { ok: true };
 }
 

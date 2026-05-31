@@ -40,7 +40,14 @@ export default async function DashboardPage() {
 			</section>
 
 			<section className={styles.section}>
-				<h2>登録済みチートコード</h2>
+				<div className={styles.sectionHead}>
+					<h2>登録済みチートコード</h2>
+					{tree.length === 0 ? null : (
+						<a className={styles.downloadLink} href="/api/export" download>
+							PCSX2 用 zip をダウンロード
+						</a>
+					)}
+				</div>
 				{tree.length === 0 ? (
 					<p>まだチートコードがありません。</p>
 				) : (

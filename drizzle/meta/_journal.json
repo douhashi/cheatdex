@@ -1,20 +1,27 @@
 {
-	"version": "7",
-	"dialect": "sqlite",
-	"entries": [
-		{
-			"idx": 0,
-			"version": "6",
-			"when": 1780159664978,
-			"tag": "0000_gifted_ultron",
-			"breakpoints": true
-		},
-		{
-			"idx": 1,
-			"version": "6",
-			"when": 1780168864656,
-			"tag": "0001_quick_captain_universe",
-			"breakpoints": true
-		}
-	]
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1780159664978,
+      "tag": "0000_gifted_ultron",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1780168864656,
+      "tag": "0001_quick_captain_universe",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1780198532944,
+      "tag": "0002_tidy_thunderbolt",
+      "breakpoints": true
+    }
+  ]
 }

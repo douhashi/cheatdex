@@ -8,6 +8,7 @@ import {
 	deleteGameCheatCodes,
 	setCheatCodeEnabled,
 	updateCheatCode,
+	updateGameCrc,
 	updateGameTitle,
 } from "@/app/lib/cheatcode/mutations";
 import { validateCheatCodeItem } from "@/app/lib/cheatcode/validate";
@@ -85,6 +86,24 @@ export async function updateGameAction(
 		user.id,
 		gameId,
 		fieldString(form, "title"),
+	);
+	if (!result.ok) return { error: result.error };
+	revalidatePath("/dashboard");
+	return undefined;
+}
+
+export async function updateGameCrcAction(
+	_prev: ActionState,
+	form: FormData,
+): Promise<ActionState> {
+	const user = await requireUser();
+	const gameId = parseId(form, "gameId");
+	if (gameId === null) return { error: "gameId is required" };
+	const result = await updateGameCrc(
+		getDb(),
+		user.id,
+		gameId,
+		fieldString(form, "crc"),
 	);
 	if (!result.ok) return { error: result.error };
 	revalidatePath("/dashboard");
